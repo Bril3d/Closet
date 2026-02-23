@@ -28,5 +28,27 @@ services:
     volumes:
       - ../backend:/app
 
+  minio:
+    image: minio/minio
+    container_name: closet_minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  createbuckets:
+    image: minio/mc
+    container_name: closet_minio_setup
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c " until (/usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin) do echo '...waiting for minio...' && sleep 1; done; /usr/bin/mc mb myminio/closet-items; /usr/bin/mc policy set public myminio/closet-items; exit 0; "
+
 volumes:
   postgres_data:
+  minio_data:

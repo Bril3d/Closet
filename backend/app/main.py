@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.v1 import auth
+from app.api.v1 import auth, items
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -18,6 +18,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(items.router, prefix="/api/v1/items", tags=["items"])
 
 
 @app.get("/health")
