@@ -44,3 +44,5 @@ htmlcov/
 
 # Alembic
 *.db
+
+.agent/
