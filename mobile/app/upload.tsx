@@ -13,8 +13,38 @@ export default function UploadScreen() {
   const [color, setColor] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
+
+  const runAIConsultation = async (uri: string) => {
+    setIsScanning(true);
+    try {
+      const classifyUrl = `${api.defaults.baseURL}/items/classify`;
+      const result = await FileSystem.uploadAsync(classifyUrl, uri, {
+        fieldName: 'file',
+        httpMethod: 'POST',
+        uploadType: 1,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (result.status === 200) {
+        const data = JSON.parse(result.body);
+        if (data.top_predictions && data.top_predictions.length > 0) {
+          setCategory(data.top_predictions[0]);
+        }
+        if (data.dominant_color) {
+          setColor(data.dominant_color);
+        }
+      }
+    } catch (e) {
+      console.error('AI classification failed:', e);
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   const pickImage = async () => {
     try {
@@ -39,6 +69,7 @@ export default function UploadScreen() {
       if (!result.canceled) {
         console.log('Image selected:', result.assets[0].uri);
         setImage(result.assets[0].uri);
+        runAIConsultation(result.assets[0].uri);
       }
     } catch (e) {
       console.error('Error in pickImage:', e);
@@ -68,6 +99,7 @@ export default function UploadScreen() {
       if (!result.canceled) {
         console.log('Photo taken:', result.assets[0].uri);
         setImage(result.assets[0].uri);
+        runAIConsultation(result.assets[0].uri);
       }
     } catch (e) {
       console.error('Error in takePhoto:', e);
@@ -207,7 +239,15 @@ export default function UploadScreen() {
 
         {/* Item Details Form */}
         <View style={styles.formContainer}>
-          <Text style={styles.sectionTitle}>Item Details</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Item Details</Text>
+            {isScanning && (
+              <View style={styles.scanningBadge}>
+                <ActivityIndicator size="small" color="#7C3AED" />
+                <Text style={styles.scanningText}>AI Scanning...</Text>
+              </View>
+            )}
+          </View>
 
           <View style={styles.inputGroup}>
             <LayoutGrid size={20} color="#6B7280" />
@@ -376,7 +416,26 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#111827',
+  } as TextStyle,
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
+  } as ViewStyle,
+  scanningBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F3FF',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    gap: 6,
+  } as ViewStyle,
+  scanningText: {
+    fontSize: 12,
+    color: '#7C3AED',
+    fontWeight: '600',
   } as TextStyle,
   inputGroup: {
     backgroundColor: '#FFFFFF',
