@@ -1,16 +1,29 @@
-from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from typing import Any, List, Optional
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session
 import uuid
 
 from app.api.v1 import deps
 from app.core.database import get_db
-from app.models.item import Item
+from app.models.item import Item, Tag
 from app.models.user import User
-from app.schemas.item import ItemOut, ItemCreate
+from app.schemas.item import ItemOut, TagOut
 from app.services.storage import storage
 
 router = APIRouter()
+
+def get_or_create_tags(db: Session, tag_names: List[str]) -> List[Tag]:
+    tags = []
+    for name in tag_names:
+        name = name.lower().strip()
+        if not name: continue
+        tag = db.query(Tag).filter(Tag.name == name).first()
+        if not tag:
+            tag = Tag(name=name)
+            db.add(tag)
+            db.flush()
+        tags.append(tag)
+    return tags
 
 @router.post("/", response_model=ItemOut)
 def create_item(
@@ -22,10 +35,17 @@ def create_item(
     color: str = Form(None),
     description: str = Form(None),
     is_favorite: bool = Form(False),
+    tags_json: str = Form("[]"), # Expecting JSON string of tags
 ) -> Any:
     """
-    Create new item with image upload.
+    Create new item with image upload and tagging.
     """
+    import json
+    try:
+        tag_list = json.loads(tags_json)
+    except:
+        tag_list = []
+
     # 1. Upload to MinIO
     file_extension = file.filename.split(".")[-1] if "." in file.filename else "bin"
     file_key = f"users/{current_user.id}/{uuid.uuid4()}.{file_extension}"
@@ -40,20 +60,22 @@ def create_item(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
 
-    # 2. Save to DB
+    # 2. Save Item and Tags
+    db_tags = get_or_create_tags(db, tag_list)
+    
     item = Item(
         owner_id=current_user.id,
         image_key=file_key,
         category=category,
         color=color,
         description=description,
-        is_favorite=is_favorite
+        is_favorite=is_favorite,
+        tags=db_tags
     )
     db.add(item)
     db.commit()
     db.refresh(item)
     
-    # 3. Add generated URL to response
     return ItemOut(
         id=item.id,
         owner_id=item.owner_id,
@@ -62,7 +84,8 @@ def create_item(
         color=item.color,
         description=item.description,
         is_favorite=item.is_favorite,
-        created_at=item.created_at
+        created_at=item.created_at,
+        tags=[TagOut(id=t.id, name=t.name) for t in item.tags]
     )
 
 @router.get("/", response_model=List[ItemOut])
@@ -71,13 +94,24 @@ def read_items(
     current_user: User = Depends(deps.get_current_user),
     skip: int = 0,
     limit: int = 100,
+    category: Optional[str] = Query(None),
+    color: Optional[str] = Query(None),
+    is_favorite: Optional[bool] = Query(None),
 ) -> Any:
     """
-    Retrieve user items.
+    Retrieve user items with filtering.
     """
-    items = db.query(Item).filter(Item.owner_id == current_user.id).offset(skip).limit(limit).all()
+    query = db.query(Item).filter(Item.owner_id == current_user.id)
     
-    # Add presigned URLs
+    if category:
+        query = query.filter(Item.category == category)
+    if color:
+        query = query.filter(Item.color == color)
+    if is_favorite is not None:
+        query = query.filter(Item.is_favorite == is_favorite)
+        
+    items = query.offset(skip).limit(limit).all()
+    
     results = []
     for item in items:
         results.append(ItemOut(
@@ -88,7 +122,8 @@ def read_items(
             color=item.color,
             description=item.description,
             is_favorite=item.is_favorite,
-            created_at=item.created_at
+            created_at=item.created_at,
+            tags=[TagOut(id=t.id, name=t.name) for t in item.tags]
         ))
     
     return results
