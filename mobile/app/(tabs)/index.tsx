@@ -4,6 +4,8 @@ import { Plus, Search, Shirt, LogOut, X, Heart } from 'lucide-react-native';
 import api from '../../services/api';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = (width - 48) / 2;
@@ -60,11 +62,13 @@ export default function ClosetScreen() {
     }
   };
 
-  useEffect(() => {
-    if (token) {
-      fetchItems();
-    }
-  }, [token, selectedCategory, isFavoriteOnly]);
+  useFocusEffect(
+    useCallback(() => {
+      if (token) {
+        fetchItems();
+      }
+    }, [token, selectedCategory, isFavoriteOnly])
+  );
 
   // Debounced search effect
   useEffect(() => {
@@ -86,10 +90,10 @@ export default function ClosetScreen() {
     ));
 
     try {
-      // Assuming a patch endpoint or similar exists/is planned
-      // For now we'll just log or use a dummy endpoint if not implemented
-      console.log('Toggling favorite for', itemId);
-      // await api.patch(`/items/${itemId}`, { is_favorite: !currentStatus }, ...);
+      await api.patch(`/items/${itemId}`,
+        { is_favorite: !currentStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
     } catch (error) {
       console.error('Failed to toggle favorite', error);
       fetchItems(); // revert on failure

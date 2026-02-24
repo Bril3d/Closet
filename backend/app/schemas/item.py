@@ -20,6 +20,12 @@ class ItemBase(BaseModel):
 class ItemCreate(ItemBase):
     pass
 
+class ItemUpdate(BaseModel):
+    category: Optional[str] = None
+    color: Optional[str] = None
+    description: Optional[str] = None
+    is_favorite: Optional[bool] = None
+
 class ItemOut(ItemBase):
     id: UUID
     owner_id: UUID

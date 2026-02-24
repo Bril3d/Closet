@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, FlatList, Image, StyleSheet, ViewStyle, TextStyle, ImageStyle, ActivityIndicator, RefreshControl } from 'react-native';
 import { Plus, Sparkles, ChevronRight } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import api from '../../services/api';
 import { useAuthStore } from '../../store/useAuthStore';
 
@@ -26,11 +27,13 @@ export default function OutfitsScreen() {
     }
   };
 
-  useEffect(() => {
-    if (token) {
-      fetchOutfits();
-    }
-  }, [token]);
+  useFocusEffect(
+    useCallback(() => {
+      if (token) {
+        fetchOutfits();
+      }
+    }, [token])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);

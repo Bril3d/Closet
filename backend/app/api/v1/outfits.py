@@ -9,6 +9,8 @@ from app.models.outfit import Outfit
 from app.models.item import Item
 from app.models.user import User
 from app.schemas.outfit import OutfitCreate, OutfitOut
+from app.schemas.item import ItemOut, TagOut
+from app.services.storage import storage
 
 router = APIRouter()
 
@@ -23,7 +25,31 @@ def get_outfits(
     Retrieve outfits for the current user.
     """
     outfits = db.query(Outfit).filter(Outfit.owner_id == current_user.id).offset(skip).limit(limit).all()
-    return outfits
+    
+    results = []
+    for o in outfits:
+        o_items = []
+        for item in o.items:
+            o_items.append(ItemOut(
+                id=item.id,
+                owner_id=item.owner_id,
+                image_url=storage.get_presigned_url(item.image_key),
+                category=item.category,
+                color=item.color,
+                description=item.description,
+                is_favorite=item.is_favorite,
+                created_at=item.created_at,
+                tags=[TagOut(id=t.id, name=t.name) for t in item.tags]
+            ))
+        results.append(OutfitOut(
+            id=o.id,
+            name=o.name,
+            description=o.description,
+            owner_id=o.owner_id,
+            created_at=o.created_at,
+            items=o_items
+        ))
+    return results
 
 @router.post("/", response_model=OutfitOut)
 def create_outfit(
@@ -55,7 +81,29 @@ def create_outfit(
     db.add(outfit)
     db.commit()
     db.refresh(outfit)
-    return outfit
+    
+    o_items = []
+    for item in outfit.items:
+        o_items.append(ItemOut(
+            id=item.id,
+            owner_id=item.owner_id,
+            image_url=storage.get_presigned_url(item.image_key),
+            category=item.category,
+            color=item.color,
+            description=item.description,
+            is_favorite=item.is_favorite,
+            created_at=item.created_at,
+            tags=[TagOut(id=t.id, name=t.name) for t in item.tags]
+        ))
+
+    return OutfitOut(
+        id=outfit.id,
+        name=outfit.name,
+        description=outfit.description,
+        owner_id=outfit.owner_id,
+        created_at=outfit.created_at,
+        items=o_items
+    )
 
 @router.delete("/{outfit_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_outfit(

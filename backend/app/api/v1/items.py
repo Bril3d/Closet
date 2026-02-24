@@ -7,8 +7,9 @@ from app.api.v1 import deps
 from app.core.database import get_db
 from app.models.item import Item, Tag
 from app.models.user import User
-from app.schemas.item import ItemOut, TagOut
+from app.schemas.item import ItemOut, TagOut, ItemUpdate
 from app.services.storage import storage
+from app.services.ai_service import ai_service
 
 router = APIRouter()
 
@@ -63,11 +64,19 @@ def create_item(
     # 2. Save Item and Tags
     db_tags = get_or_create_tags(db, tag_list)
     
+    # 3. AI Detection if metadata is missing
+    final_category = category
+    final_color = color
+    if not final_category or not final_color:
+        ai_results = ai_service.classify_image(file_data)
+        if not final_category: final_category = ai_results["top_predictions"][0]
+        if not final_color: final_color = ai_results["dominant_color"]
+
     item = Item(
         owner_id=current_user.id,
         image_key=file_key,
-        category=category,
-        color=color,
+        category=final_category,
+        color=final_color,
         description=description,
         is_favorite=is_favorite,
         tags=db_tags
@@ -150,7 +159,8 @@ def read_item(
         color=item.color,
         description=item.description,
         is_favorite=item.is_favorite,
-        created_at=item.created_at
+        created_at=item.created_at,
+        tags=[TagOut(id=t.id, name=t.name) for t in item.tags]
     )
 
 @router.delete("/{item_id}")
@@ -174,3 +184,53 @@ def delete_item(
     db.delete(item)
     db.commit()
     return {"message": "Item deleted"}
+
+@router.post("/classify")
+def classify_item(
+    *,
+    file: UploadFile = File(...),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Classify an item image using AI.
+    """
+    file.file.seek(0)
+    file_data = file.file.read()
+    results = ai_service.classify_image(file_data)
+    return results
+
+@router.patch("/{item_id}", response_model=ItemOut)
+def update_item(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(deps.get_current_user),
+    item_id: uuid.UUID,
+    item_in: ItemUpdate,
+) -> Any:
+    """
+    Update an item.
+    """
+    item = db.query(Item).filter(Item.id == item_id, Item.owner_id == current_user.id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    update_data = item_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(item, field, value)
+    
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    
+    return ItemOut(
+        id=item.id,
+        owner_id=item.owner_id,
+        image_url=storage.get_presigned_url(item.image_key),
+        category=item.category,
+        color=item.color,
+        description=item.description,
+        is_favorite=item.is_favorite,
+        created_at=item.created_at,
+        tags=[TagOut(id=t.id, name=t.name) for t in item.tags]
+    )
+
