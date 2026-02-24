@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, SafeAreaView, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import { KeyRound, Mail } from 'lucide-react-native';
 import api from '../../services/api';
@@ -20,13 +20,11 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append('username', email);
-      formData.append('password', password);
+      const payload = `username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
 
-      const response = await api.post('/auth/login', formData, {
+      const response = await api.post('/auth/login', payload, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
 
@@ -50,55 +48,136 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1 px-6 justify-center">
-        <View className="mb-10">
-          <Text className="text-4xl font-bold text-gray-900">Welcome Back</Text>
-          <Text className="text-gray-500 mt-2">Sign in to your digital closet</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.titleSection}>
+          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.subtitle}>Sign in to your digital closet</Text>
         </View>
 
-        <View className="space-y-4">
-          <View className="flex-row items-center border-b border-gray-200 pb-2 mb-4">
+        <View style={styles.form}>
+          <View style={styles.inputContainer}>
             <Mail size={20} color="#6B7280" />
             <TextInput
               placeholder="Email"
-              className="flex-1 ml-3 text-lg"
+              style={styles.input}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
+              placeholderTextColor="#9CA3AF"
             />
           </View>
 
-          <View className="flex-row items-center border-b border-gray-200 pb-2 mb-8">
+          <View style={[styles.inputContainer, styles.passwordMargin]}>
             <KeyRound size={20} color="#6B7280" />
             <TextInput
               placeholder="Password"
-              className="flex-1 ml-3 text-lg"
+              style={styles.input}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              placeholderTextColor="#9CA3AF"
             />
           </View>
         </View>
 
         <TouchableOpacity
-          className="bg-black py-4 rounded-xl items-center"
+          style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleLogin}
           disabled={loading}
         >
-          <Text className="text-white text-lg font-semibold">
+          <Text style={styles.buttonText}>
             {loading ? 'Signing in...' : 'Sign In'}
           </Text>
         </TouchableOpacity>
 
-        <View className="flex-row justify-center mt-6">
-          <Text className="text-gray-500">Don't have an account? </Text>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don't have an account? </Text>
           <TouchableOpacity onPress={() => router.push('/auth/register')}>
-            <Text className="text-black font-semibold">Register</Text>
+            <Text style={styles.registerLink}>Register</Text>
           </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  } as ViewStyle,
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'center',
+  } as ViewStyle,
+  titleSection: {
+    marginBottom: 40,
+  } as ViewStyle,
+  title: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#7C3AED',
+  } as TextStyle,
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 8,
+  } as TextStyle,
+  form: {
+    marginBottom: 24,
+  } as ViewStyle,
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDE9FE',
+    paddingBottom: 8,
+    marginBottom: 16,
+  } as ViewStyle,
+  passwordMargin: {
+    marginBottom: 32,
+  } as ViewStyle,
+  input: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 18,
+    color: '#111827',
+  } as TextStyle,
+  button: {
+    backgroundColor: '#7C3AED',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  } as ViewStyle,
+  buttonDisabled: {
+    opacity: 0.7,
+  } as ViewStyle,
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+  } as TextStyle,
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 24,
+  } as ViewStyle,
+  footerText: {
+    color: '#6B7280',
+    fontSize: 16,
+  } as TextStyle,
+  registerLink: {
+    color: '#7C3AED',
+    fontSize: 16,
+    fontWeight: '600',
+  } as TextStyle,
+});
+

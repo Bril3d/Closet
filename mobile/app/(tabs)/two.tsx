@@ -1,26 +1,26 @@
 import React from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { LayoutGrid, Sparkles } from 'lucide-react-native';
 
 export default function OutfitsScreen() {
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <View className="px-6 pt-4 pb-2">
-        <Text className="text-3xl font-bold text-gray-900">Outfits</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Outfits</Text>
       </View>
 
-      <View className="flex-1 justify-center items-center px-10">
-        <View className="bg-gray-100 p-8 rounded-full mb-6">
+      <View style={styles.content}>
+        <View style={styles.iconCircle}>
           <LayoutGrid size={64} color="#9CA3AF" />
         </View>
-        <Text className="text-xl font-bold text-gray-900 mb-2">No outfits yet</Text>
-        <Text className="text-gray-500 text-center mb-8">
+        <Text style={styles.emptyTitle}>No outfits yet</Text>
+        <Text style={styles.emptySubtitle}>
           The AI Outfit Generator is coming soon! Soon you'll be able to automatically generate stylish outfits from your digital closet.
         </Text>
 
-        <TouchableOpacity className="bg-black px-8 py-4 rounded-xl flex-row items-center cursor-not-allowed opacity-80" disabled>
-          <Sparkles size={20} color="#FFF" className="mr-2" />
-          <Text className="text-white font-semibold text-lg ml-2">
+        <TouchableOpacity style={styles.button} disabled>
+          <Sparkles size={20} color="#FFF" style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>
             Generate Outfit
           </Text>
         </TouchableOpacity>
@@ -28,3 +28,68 @@ export default function OutfitsScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  } as ViewStyle,
+  header: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 8,
+  } as ViewStyle,
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#7C3AED',
+  } as TextStyle,
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  } as ViewStyle,
+  iconCircle: {
+    backgroundColor: '#F5F3FF',
+    padding: 32,
+    borderRadius: 100,
+    marginBottom: 24,
+  } as ViewStyle,
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  } as TextStyle,
+  emptySubtitle: {
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 22,
+  } as TextStyle,
+  button: {
+    backgroundColor: '#7C3AED',
+    opacity: 0.8,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  } as ViewStyle,
+  buttonIcon: {
+    marginRight: 8,
+  } as ViewStyle,
+  buttonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 18,
+    marginLeft: 8,
+  } as TextStyle,
+});
+

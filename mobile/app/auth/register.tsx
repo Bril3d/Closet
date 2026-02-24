@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, SafeAreaView, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import { KeyRound, Mail } from 'lucide-react-native';
 import api from '../../services/api';
@@ -41,66 +41,148 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1 px-6 justify-center">
-        <View className="mb-10">
-          <Text className="text-4xl font-bold text-gray-900">Create Account</Text>
-          <Text className="text-gray-500 mt-2">Join the smart fashion movement</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.titleSection}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Join the smart fashion movement</Text>
         </View>
 
-        <View className="space-y-4">
-          <View className="flex-row items-center border-b border-gray-200 pb-2 mb-4">
+        <View style={styles.form}>
+          <View style={styles.inputContainer}>
             <Mail size={20} color="#6B7280" />
             <TextInput
               placeholder="Email"
-              className="flex-1 ml-3 text-lg"
+              style={styles.input}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
+              placeholderTextColor="#9CA3AF"
             />
           </View>
 
-          <View className="flex-row items-center border-b border-gray-200 pb-2 mb-4">
+          <View style={styles.inputContainer}>
             <KeyRound size={20} color="#6B7280" />
             <TextInput
               placeholder="Password"
-              className="flex-1 ml-3 text-lg"
+              style={styles.input}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              placeholderTextColor="#9CA3AF"
             />
           </View>
 
-          <View className="flex-row items-center border-b border-gray-200 pb-2 mb-8">
+          <View style={[styles.inputContainer, styles.passwordMargin]}>
             <KeyRound size={20} color="#6B7280" />
             <TextInput
               placeholder="Confirm Password"
-              className="flex-1 ml-3 text-lg"
+              style={styles.input}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
+              placeholderTextColor="#9CA3AF"
             />
           </View>
         </View>
 
         <TouchableOpacity
-          className="bg-black py-4 rounded-xl items-center"
+          style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleRegister}
           disabled={loading}
         >
-          <Text className="text-white text-lg font-semibold">
+          <Text style={styles.buttonText}>
             {loading ? 'Creating Account...' : 'Register'}
           </Text>
         </TouchableOpacity>
 
-        <View className="flex-row justify-center mt-6">
-          <Text className="text-gray-500">Already have an account? </Text>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Already have an account? </Text>
           <TouchableOpacity onPress={() => router.push('/auth/login')}>
-            <Text className="text-black font-semibold">Sign In</Text>
+            <Text style={styles.footerAction}>Sign In</Text>
           </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  } as ViewStyle,
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'center',
+  } as ViewStyle,
+  titleSection: {
+    marginBottom: 40,
+  } as ViewStyle,
+  title: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#7C3AED',
+  } as TextStyle,
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 8,
+  } as TextStyle,
+  form: {
+    marginBottom: 24,
+  } as ViewStyle,
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDE9FE',
+    paddingBottom: 8,
+    marginBottom: 16,
+  } as ViewStyle,
+  passwordMargin: {
+    marginBottom: 32,
+  } as ViewStyle,
+  input: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 18,
+    color: '#111827',
+  } as TextStyle,
+  button: {
+    backgroundColor: '#7C3AED',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  } as ViewStyle,
+  buttonDisabled: {
+    opacity: 0.7,
+  } as ViewStyle,
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+  } as TextStyle,
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 24,
+  } as ViewStyle,
+  footerText: {
+    color: '#6B7280',
+    fontSize: 16,
+  } as TextStyle,
+  footerAction: {
+    color: '#7C3AED',
+    fontSize: 16,
+    fontWeight: '600',
+  } as TextStyle,
+});
+

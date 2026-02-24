@@ -1,13 +1,14 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useRootNavigationState } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-import "../global.css";
+// Native styling refactor complete. NativeWind global.css removed.
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { useAuthStore } from '../store/useAuthStore';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -20,9 +21,7 @@ export const unstable_settings = {
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-import { useAuthStore } from '../store/useAuthStore';
+SplashScreen.preventAutoHideAsync().catch(() => { });
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -30,29 +29,32 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
-  const token = useAuthStore((state) => state.token);
-  const router = useRouter();
+  const rootNavigationState = useRootNavigationState();
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  useEffect(() => {
-    if (loaded && !token) {
-      router.replace('/auth/login');
-    }
-  }, [loaded, token]);
-
-  if (!loaded) {
+  if (!loaded || !rootNavigationState?.key) {
     return null;
   }
+
+  return <RootLayoutContent />;
+}
+
+function RootLayoutContent() {
+  const token = useAuthStore((state) => state.token);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!token) {
+      router.replace('/auth/login');
+    }
+  }, [token]);
+
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => { });
+  }, []);
 
   return <RootLayoutNav />;
 }
