@@ -11,6 +11,11 @@ class OutfitBase(BaseModel):
 class OutfitCreate(OutfitBase):
     item_ids: List[UUID]
 
+class OutfitUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    item_ids: Optional[List[UUID]] = None
+
 class OutfitOut(OutfitBase):
     id: UUID
     owner_id: UUID

@@ -116,7 +116,7 @@ export default function OutfitDetailScreen() {
           <TouchableOpacity style={styles.iconButton}>
             <Share2 size={22} color="#111827" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity style={styles.iconButton} onPress={() => router.push(`/outfits/edit/${id}`)}>
             <Edit size={22} color="#111827" />
           </TouchableOpacity>
         </View>
