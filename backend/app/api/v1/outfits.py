@@ -105,6 +105,49 @@ def create_outfit(
         items=o_items
     )
 
+@router.get("/{outfit_id}", response_model=OutfitOut)
+def get_outfit(
+    outfit_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Get a single outfit by ID.
+    """
+    outfit = db.query(Outfit).filter(
+        Outfit.id == outfit_id,
+        Outfit.owner_id == current_user.id
+    ).first()
+    
+    if not outfit:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Outfit not found"
+        )
+    
+    o_items = []
+    for item in outfit.items:
+        o_items.append(ItemOut(
+            id=item.id,
+            owner_id=item.owner_id,
+            image_url=storage.get_presigned_url(item.image_key),
+            category=item.category,
+            color=item.color,
+            description=item.description,
+            is_favorite=item.is_favorite,
+            created_at=item.created_at,
+            tags=[TagOut(id=t.id, name=t.name) for t in item.tags]
+        ))
+
+    return OutfitOut(
+        id=outfit.id,
+        name=outfit.name,
+        description=outfit.description,
+        owner_id=outfit.owner_id,
+        created_at=outfit.created_at,
+        items=o_items
+    )
+
 @router.delete("/{outfit_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_outfit(
     outfit_id: UUID,
