@@ -75,6 +75,7 @@ export default function OutfitDetailScreen() {
     shoes: outfit.items.filter(i => i.category?.toLowerCase().includes('shoe') || i.category?.toLowerCase().includes('sneaker')),
     accessories: outfit.items.filter(i => i.category?.toLowerCase().includes('access') || i.category?.toLowerCase().includes('hat') || i.category?.toLowerCase().includes('bag')),
   };
+  console.log(itemsByCategory)
   const renderFittedPreview = () => (
     <View style={styles.fittedPreviewContainer}>
       <View style={styles.fittingMannequin}>
