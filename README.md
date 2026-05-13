@@ -200,7 +200,11 @@ python -m pytest tests/ -v
 
 ## 👥 Team
 
-Built as a university BI/AI project.
+Built as a university BI/AI project by:
+
+- **Oussama Ferchichi**
+- **Khaled Briki**
+- **Mohamed Amine Guesmi**
 
 ---
 
