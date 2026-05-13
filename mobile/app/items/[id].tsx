@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, TouchableOpacity, SafeAreaView, Alert, Dimensions, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, TouchableOpacity, Alert, Dimensions, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Heart, Edit, Trash2, Tag, Palette, LayoutGrid, Sparkles } from 'lucide-react-native';
 import api from '../../services/api';

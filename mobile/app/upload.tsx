@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, Alert, SafeAreaView, ActivityIndicator, TextInput, StyleSheet, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator, TextInput, StyleSheet, ViewStyle, TextStyle, ImageStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -55,7 +56,7 @@ export default function UploadScreen() {
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) { Alert.alert("Permission Required", "Please allow photo access."); return; }
-      let result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.8 });
+      let result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.8 });
       if (!result.canceled) { setImage(result.assets[0].uri); runAIConsultation(result.assets[0].uri); }
     } catch (e) { Alert.alert('Error', 'Failed to pick image'); }
   };

@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl,
-  SafeAreaView, Dimensions, Image, TouchableOpacity, ViewStyle, TextStyle
+  Dimensions, Image, TouchableOpacity, ViewStyle, TextStyle
 } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { BarChart3, TrendingUp, Shirt, Heart, Palette, Sparkles, Moon } from 'lucide-react-native';

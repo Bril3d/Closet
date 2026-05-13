@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, ActivityIndicator, SafeAreaView, Dimensions, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, ActivityIndicator, Dimensions, ViewStyle, TextStyle, ImageStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, CheckCircle2, Circle } from 'lucide-react-native';
 import api from '../../services/api';
