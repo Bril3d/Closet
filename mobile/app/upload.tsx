@@ -7,6 +7,8 @@ import { Camera, UploadCloud, X, LayoutGrid, Palette, FileText } from 'lucide-re
 import api from '../services/api';
 import { useAuthStore } from '../store/useAuthStore';
 
+const CATEGORIES = ['Tops', 'Bottoms', 'Outerwear', 'Shoes', 'Accessories'];
+
 export default function UploadScreen() {
   const [image, setImage] = useState<string | null>(null);
   const [category, setCategory] = useState('');
@@ -33,7 +35,16 @@ export default function UploadScreen() {
       if (result.status === 200) {
         const data = JSON.parse(result.body);
         if (data.top_predictions && data.top_predictions.length > 0) {
-          setCategory(data.top_predictions[0]);
+          const aiCategory = data.top_predictions[0];
+          // Try to match AI result to our standard categories
+          const match = CATEGORIES.find(cat => aiCategory.toLowerCase().includes(cat.toLowerCase()));
+          if (match) {
+            setCategory(match);
+          } else {
+            // Default to Tops if unknown or just pick the first AI prediction verbatim if we want to allow it, 
+            // but the requirement is to standardize.
+            setCategory(CATEGORIES[0]);
+          }
         }
         if (data.dominant_color) {
           setColor(data.dominant_color);
@@ -249,17 +260,27 @@ export default function UploadScreen() {
             )}
           </View>
 
-          <View style={styles.inputGroup}>
+          <View style={[styles.inputGroup, styles.categoryGroup]}>
             <LayoutGrid size={20} color="#6B7280" />
             <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Category (e.g., T-Shirt, Jeans)</Text>
-              <TextInput
-                placeholder="Enter category"
-                style={styles.input}
-                value={category}
-                onChangeText={setCategory}
-                placeholderTextColor="#9CA3AF"
-              />
+              <Text style={styles.inputLabel}>Select Category</Text>
+              <View style={styles.categoryChips}>
+                {CATEGORIES.map(cat => (
+                  <TouchableOpacity
+                    key={cat}
+                    style={[
+                      styles.chip,
+                      category === cat && styles.activeChip
+                    ]}
+                    onPress={() => setCategory(cat)}
+                  >
+                    <Text style={[
+                      styles.chipText,
+                      category === cat && styles.activeChipText
+                    ]}>{cat}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
 
@@ -452,6 +473,36 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   } as ViewStyle,
+  categoryGroup: {
+    paddingBottom: 20,
+    alignItems: 'flex-start',
+  } as ViewStyle,
+  categoryChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  } as ViewStyle,
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  } as ViewStyle,
+  activeChip: {
+    backgroundColor: '#7C3AED',
+    borderColor: '#7C3AED',
+  } as ViewStyle,
+  chipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#4B5563',
+  } as TextStyle,
+  activeChipText: {
+    color: '#FFFFFF',
+  } as TextStyle,
   inputWrapper: {
     flex: 1,
     marginLeft: 12,

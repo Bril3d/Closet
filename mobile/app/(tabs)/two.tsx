@@ -41,7 +41,7 @@ export default function OutfitsScreen() {
   };
 
   const renderOutfit = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.outfitCard} onPress={() => {/* View outfit details */ }}>
+    <TouchableOpacity style={styles.outfitCard} onPress={() => router.push(`/outfits/${item.id}`)}>
       <View style={styles.outfitPreview}>
         {item.items.slice(0, 4).map((clothing: any, index: number) => (
           <Image

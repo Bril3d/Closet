@@ -53,10 +53,14 @@ def create_item(
     
     try:
         file_data = file.file.read()
+        
+        # New: Remove background
+        file_data = ai_service.remove_background(file_data)
+        
         storage.upload_file(
             file_data=file_data,
             file_key=file_key,
-            content_type=file.content_type
+            content_type="image/png" # Background removal always results in PNG (RGBA)
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")

@@ -8,7 +8,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 
 const { width } = Dimensions.get('window');
-const ITEM_WIDTH = (width - 48) / 2;
+const GAP = 16;
+const PADDING = 24;
+const ITEM_WIDTH = (width - (PADDING * 2) - GAP) / 2;
 
 const CATEGORIES = ['Tops', 'Bottoms', 'Outerwear', 'Shoes', 'Accessories'];
 
@@ -346,7 +348,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     overflow: 'hidden',
-    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -427,8 +428,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   } as TextStyle,
   columnWrapper: {
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
+    paddingHorizontal: PADDING,
+    gap: GAP,
+    marginBottom: GAP,
   } as ViewStyle,
   listContent: {
     paddingBottom: 100,
