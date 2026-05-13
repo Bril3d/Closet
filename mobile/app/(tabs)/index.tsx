@@ -105,7 +105,7 @@ export default function ClosetScreen() {
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={[styles.itemCard, { width: ITEM_WIDTH }]}
-      onPress={() => {/* Navigate to item detail */ }}
+      onPress={() => router.push(`/items/${item.id}`)}
     >
       <Image
         source={{ uri: item.image_url }}
