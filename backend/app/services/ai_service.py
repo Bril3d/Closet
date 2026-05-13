@@ -30,7 +30,12 @@ def _load_model():
 
     logger.info(f"Loading AI model: {_model_name} ...")
     _processor = AutoProcessor.from_pretrained(_model_name, trust_remote_code=True)
-    _model = AutoModel.from_pretrained(_model_name, trust_remote_code=True)
+    _model = AutoModel.from_pretrained(
+        _model_name,
+        trust_remote_code=True,
+        device_map=None,           # Don't use accelerate/meta tensors
+        torch_dtype=torch.float32, # Force full precision on CPU
+    ).to("cpu")
     _model.eval()
     logger.info("AI model loaded successfully!")
 
