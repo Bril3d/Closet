@@ -27,16 +27,20 @@ export default function UploadScreen() {
   const runAIConsultation = async (uri: string) => {
     setIsScanning(true);
     try {
-      const classifyUrl = `${api.defaults.baseURL}/items/classify`;
-      const result = await FileSystem.uploadAsync(classifyUrl, uri, {
-        fieldName: 'file',
-        httpMethod: 'POST',
-        uploadType: 1,
-        headers: { Authorization: `Bearer ${token}` },
+      const formData = new FormData();
+      const filename = uri.split('/').pop() || 'photo.jpg';
+      formData.append('file', { uri, name: filename, type: 'image/jpeg' } as any);
+
+      const response = await api.post('/items/classify', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 120000, // 2 minutes — AI inference on CPU can be slow
       });
 
-      if (result.status === 200) {
-        const data = JSON.parse(result.body);
+      if (response.status === 200) {
+        const data = response.data;
         setAiResults(data);
         if (data.category) {
           const match = CATEGORIES.find(cat => cat === data.category);
