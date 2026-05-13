@@ -31,16 +31,20 @@ export default function UploadScreen() {
       const filename = uri.split('/').pop() || 'photo.jpg';
       formData.append('file', { uri, name: filename, type: 'image/jpeg' } as any);
 
-      const response = await api.post('/items/classify', formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 120000, // 2 minutes — AI inference on CPU can be slow
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 min timeout
+
+      const response = await fetch(`${api.defaults.baseURL}/items/classify`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+        signal: controller.signal,
       });
 
-      if (response.status === 200) {
-        const data = response.data;
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
         setAiResults(data);
         if (data.category) {
           const match = CATEGORIES.find(cat => cat === data.category);
