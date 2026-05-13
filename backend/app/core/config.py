@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     MINIO_BUCKET: str = "closet-items"
     MINIO_USE_SSL: bool = False
 
+    # Weather API
+    OPENWEATHER_API_KEY: str = "1fdb94a6971f00db73a8ae162c89f4f7"
+
     model_config = {
         "env_file": ".env",
         "extra": "ignore"
