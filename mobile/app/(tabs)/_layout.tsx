@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Shirt, LayoutGrid, BarChart3 } from 'lucide-react-native';
+import { Shirt, LayoutGrid, BarChart3, Sparkles } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -45,6 +45,13 @@ export default function TabLayout() {
         options={{
           title: 'Insights',
           tabBarIcon: ({ color }) => <BarChart3 size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="four"
+        options={{
+          title: 'Stylist',
+          tabBarIcon: ({ color }) => <Sparkles size={24} color={color} />,
         }}
       />
     </Tabs>

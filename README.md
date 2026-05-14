@@ -2,47 +2,41 @@
 
 > **Digitize your wardrobe. Get AI-powered outfit recommendations. Reduce fashion waste.**
 
-Closet is a full-stack mobile application that helps users manage their wardrobe intelligently using AI classification, weather-based outfit suggestions, and business intelligence analytics.
+Closet is a state-of-the-art, full-stack mobile application that helps users manage their wardrobe intelligently. By combining zero-shot AI garment classification, real-time weather integration, and business intelligence analytics, Closet acts as your personal digital stylist.
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
 ### 🤖 AI-Powered Classification
-- **Zero-shot garment recognition** using [Marqo FashionSigLIP](https://huggingface.co/Marqo/marqo-fashionSigLIP) — no training required
-- Detects **category** (Tops, Bottoms, Shoes, etc.), **subcategory** (T-Shirt, Jeans, Sneakers), **color**, **style**, **pattern**, **sleeve length**, and **fabric**
-- **Smart tag suggestions** generated from AI classification
-- **Background removal** using [rembg](https://github.com/danielgatis/rembg) for clean item photos
+- **Zero-Shot Garment Recognition:** Powered by [Marqo FashionSigLIP](https://huggingface.co/Marqo/marqo-fashionSigLIP) — instantly detects clothing without prior training.
+- **Deep Metadata Extraction:** Automatically identifies **category** (Tops, Bottoms, Shoes), **subcategory** (T-Shirt, Jeans), **color**, **style**, **pattern**, and **fabric**.
+- **Smart Tagging:** Generates relevant tags autonomously based on visual features.
+- **Background Removal:** Clean, uniform closet item photos powered by [rembg](https://github.com/danielgatis/rembg) (U²-Net).
+
+### 💅 The AI Stylist (New!)
+- **Daily Mix:** A dedicated engine that generates harmonious, stylish daily outfits by rotating your closet items, ensuring your least-worn pieces get the love they deserve.
+- **Weather Match:** Input any city globally (with an intelligent autocomplete dropdown) to fetch real-time OpenWeatherMap data and receive an outfit tailored specifically for the current temperature, humidity, and rain conditions.
+- **Color Harmony Engine:** Employs advanced color theory (complementary and analogous rules) to guarantee your suggested outfits look incredible together.
 
 ### 📊 BI Analytics Dashboard
-- **Style Score** — diversity metric based on category, color, and outfit variety
-- **Wardrobe Composition** — interactive pie chart of category distribution
-- **Color Palette** — visual breakdown of your wardrobe colors
-- **Sleeping Items** — items never used in outfits, encouraging sustainable fashion
-- **Cost Per Wear** — track price vs. usage for smart purchasing decisions
+- **Style Score:** A proprietary diversity metric based on category, color, and outfit variety.
+- **Wardrobe Composition:** Interactive, beautifully rendered pie charts mapping category distributions.
+- **Color Palette:** A visual breakdown mapping your exact wardrobe color usage.
+- **Sleeping Items:** Identifies items sitting unused in your closet, encouraging sustainable fashion habits.
+- **Cost Per Wear:** Tracks the financial efficiency of your purchases.
 
-### 🌤️ Weather-Based Outfit Suggestions
-- Real-time weather data via [OpenWeatherMap API](https://openweathermap.org/)
-- Temperature-aware clothing recommendations (freezing → hot)
-- Rain detection with waterproof layer suggestions
-
-### 👔 Smart Outfit Recommendations
-- **Color harmony engine** using complementary color rules
-- **Diversity boosting** — prioritizes least-worn items
-- **Category-balanced** outfits (top + bottom or dress + accessories)
-
-### 📱 Mobile App
-- Built with **React Native** + **Expo SDK 54**
-- 3-tab navigation: Closet, Outfits, Insights
-- Item detail, edit, and delete screens
-- Outfit creation with drag-and-drop item selection
-- Persistent auth using AsyncStorage + Zustand
+### 📱 Premium Mobile App
+- **Built with React Native & Expo SDK 54:** Delivering a flawless cross-platform experience.
+- **4-Tab Navigation:** Seamlessly switch between Closet, Outfits, Insights, and the Stylist.
+- **Outfit Creation:** Drag-and-drop mechanics to build custom outfits manually.
+- **Persistent Storage:** Secure authentication and state management utilizing `expo-secure-store` and Zustand.
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ System Architecture
 
-```
+```text
 ┌─────────────────┐     ┌─────────────────────────┐     ┌──────────┐
 │   Mobile App    │────▶│   FastAPI Backend        │────▶│ PostgreSQL│
 │  React Native   │     │                         │     └──────────┘
@@ -61,42 +55,43 @@ Closet is a full-stack mobile application that helps users manage their wardrobe
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
 | Layer | Technology |
 |-------|-----------|
-| **Mobile** | React Native, Expo SDK 54, TypeScript |
-| **State Management** | Zustand + AsyncStorage persistence |
-| **Charts** | react-native-gifted-charts |
-| **Backend** | FastAPI, Python 3.12 |
-| **Database** | PostgreSQL + SQLAlchemy ORM + Alembic |
-| **Object Storage** | MinIO (S3-compatible) |
-| **AI Model** | Marqo FashionSigLIP (zero-shot classification) |
-| **Color Detection** | OpenCV + scikit-learn KMeans |
-| **Background Removal** | rembg (U²-Net) |
-| **Weather** | OpenWeatherMap API |
-| **DevOps** | Docker + Docker Compose |
+| **Frontend Mobile** | React Native, Expo SDK 54, TypeScript |
+| **State Management** | Zustand, Expo Secure Store |
+| **Data Visualization** | react-native-gifted-charts |
+| **Backend API** | FastAPI, Python 3.12 |
+| **Database** | PostgreSQL, SQLAlchemy ORM, Alembic |
+| **Object Storage** | MinIO (S3-Compatible Object Storage) |
+| **AI Models** | Marqo FashionSigLIP, OpenCV, scikit-learn |
+| **Background Removal** | rembg (U²-Net Architecture) |
+| **External APIs** | OpenWeatherMap (Weather & Geocoding) |
+| **Infrastructure** | Docker, Docker Compose |
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start Guide
 
 ### Prerequisites
 - Docker & Docker Compose
 - Node.js 18+ & npm
 - Expo CLI (`npm install -g expo-cli`)
 
-### 1. Clone & Setup Backend
+### 1. Initialize the Backend Environment
 
 ```bash
 git clone https://github.com/Bril3d/Closet.git
 cd Closet
 
-# Copy environment file
+# Copy the environment file
 cp backend/.env.example backend/.env
-# Edit backend/.env with your settings (especially OPENWEATHER_API_KEY)
 
-# Start all services (backend + PostgreSQL + MinIO)
+# Important: Edit backend/.env to add your OPENWEATHER_API_KEY
+# Ensure MINIO_ENDPOINT_PUBLIC is set to your local machine IP if testing on a physical device.
+
+# Boot up the infrastructure (FastAPI, PostgreSQL, MinIO)
 docker-compose up -d
 ```
 
@@ -106,7 +101,7 @@ docker-compose up -d
 docker-compose exec backend alembic upgrade head
 ```
 
-### 3. Setup & Run Mobile App
+### 3. Launch the Mobile Application
 
 ```bash
 cd mobile
@@ -114,93 +109,61 @@ npm install
 npx expo start
 ```
 
-Scan the QR code with **Expo Go** on your phone.
+Scan the QR code with **Expo Go** on your iOS or Android device.
 
-> **Note:** For mobile → backend connectivity, set `MINIO_ENDPOINT_PUBLIC` in your `.env` to your machine's IP (e.g., `http://192.168.1.100:9000`).
+> **Network Note:** The mobile app fetches images via a robust backend proxy (`/api/v1/images/`) to ensure seamless image loading across all physical devices and emulators, bypassing restrictive localhost storage issues.
 
 ---
 
-## 📂 Project Structure
+## 📂 Repository Structure
 
-```
+```text
 Closet/
-├── backend/                    # FastAPI Backend
+├── backend/                    # Core Python API
 │   ├── app/
-│   │   ├── api/v1/            # API Routes
-│   │   │   ├── auth.py        # Authentication (register/login)
-│   │   │   ├── items.py       # CRUD + AI classification
-│   │   │   ├── outfits.py     # Outfit management
-│   │   │   ├── analytics.py   # BI dashboard endpoints
-│   │   │   └── suggestions.py # Weather + outfit suggestions
-│   │   ├── models/            # SQLAlchemy models
-│   │   ├── schemas/           # Pydantic schemas
-│   │   ├── services/          # Business logic
-│   │   │   ├── ai_service.py  # FashionSigLIP classification
-│   │   │   ├── weather_service.py
-│   │   │   ├── recommendation_service.py
-│   │   │   └── storage.py     # MinIO integration
-│   │   └── core/              # Config, DB, security
-│   ├── tests/                 # pytest test suite
-│   ├── alembic/               # Database migrations
-│   ├── Dockerfile
-│   └── requirements.txt
-├── mobile/                    # React Native App
+│   │   ├── api/v1/            # API Route definitions
+│   │   ├── models/            # SQLAlchemy database models
+│   │   ├── schemas/           # Pydantic data validation schemas
+│   │   ├── services/          # Core business & AI logic
+│   │   │   ├── ai_service.py  # Zero-shot classification & background removal
+│   │   │   ├── weather_service.py # OpenWeather integration & Geocoding
+│   │   │   └── recommendation_service.py # Outfit generation engine
+│   │   └── core/              # Configuration & Database connection
+│   ├── tests/                 # Comprehensive pytest suite
+│   ├── alembic/               # Database migration scripts
+│   └── Dockerfile             # Container configuration
+├── mobile/                    # React Native Application
 │   ├── app/
-│   │   ├── (tabs)/            # Tab screens
-│   │   │   ├── index.tsx      # Closet (item grid)
-│   │   │   ├── two.tsx        # Outfits
-│   │   │   └── three.tsx      # Insights (analytics)
-│   │   ├── items/
-│   │   │   ├── [id].tsx       # Item detail
-│   │   │   └── edit/[id].tsx  # Item edit
-│   │   ├── outfits/           # Outfit screens
-│   │   └── upload.tsx         # Add item with AI scan
-│   ├── store/                 # Zustand state
-│   └── services/              # API client
-├── garment-recognition/       # ML training scripts
-├── docker-compose.yml
-└── README.md
+│   │   ├── (tabs)/            # Main navigation screens (Closet, Outfits, Insights, Stylist)
+│   │   ├── auth/              # Registration & Login flows
+│   │   └── items/             # Detailed item management
+│   ├── store/                 # Zustand state managers
+│   └── services/              # Axios API client wrapper
+├── garment-recognition/       # Auxiliary ML training scripts & notebooks
+└── docker-compose.yml         # Multi-container orchestration
 ```
 
 ---
 
-## 🧪 Testing
-
-```bash
-cd backend
-pip install pytest httpx
-python -m pytest tests/ -v
-```
-
----
-
-## 📡 API Endpoints
+## 📡 Core API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/v1/auth/register` | Register new user |
-| POST | `/api/v1/auth/login` | Login (returns JWT) |
-| GET | `/api/v1/items/` | List user's items (with filters) |
-| POST | `/api/v1/items/` | Upload item (auto AI classify) |
-| POST | `/api/v1/items/classify` | Classify image without saving |
-| GET | `/api/v1/items/{id}` | Item detail |
-| PATCH | `/api/v1/items/{id}` | Update item |
-| DELETE | `/api/v1/items/{id}` | Delete item |
-| GET | `/api/v1/outfits/` | List outfits |
-| POST | `/api/v1/outfits/` | Create outfit |
-| DELETE | `/api/v1/outfits/{id}` | Delete outfit |
-| GET | `/api/v1/analytics/summary` | Wardrobe summary stats |
-| GET | `/api/v1/analytics/category-distribution` | Category pie chart data |
-| GET | `/api/v1/analytics/color-distribution` | Color palette data |
-| GET | `/api/v1/analytics/sleeping-items` | Unused items |
-| GET | `/api/v1/suggestions/weather?city=X` | Weather outfit suggestion |
-| GET | `/api/v1/suggestions/outfit` | AI outfit recommendation |
+| POST | `/api/v1/auth/login` | Authenticate & retrieve JWT |
+| POST | `/api/v1/items/` | Upload image, auto-remove background, classify, & save |
+| GET | `/api/v1/items/` | Retrieve user wardrobe with optional filters |
+| GET | `/api/v1/outfits/` | Retrieve curated outfits |
+| GET | `/api/v1/images/{file_key}` | Proxy endpoint serving MinIO images to mobile |
+| GET | `/api/v1/analytics/summary` | Fetch core BI metrics & Style Score |
+| GET | `/api/v1/suggestions/cities?query=X` | Autocomplete Geocoding for valid city names |
+| GET | `/api/v1/suggestions/weather?city=X` | Fetch weather-optimized outfit recommendations |
+| GET | `/api/v1/suggestions/outfit` | Fetch AI daily mix outfit recommendation |
 
 ---
 
-## 👥 Team
+## 👥 The Team
 
-Built as a university BI/AI project by:
+Built as a capstone Business Intelligence & Artificial Intelligence project by:
 
 - **Oussama Ferchichi**
 - **Khaled Briki**
@@ -210,4 +173,4 @@ Built as a university BI/AI project by:
 
 ## 📄 License
 
-This project is for educational purposes.
+This project is intended for educational purposes and academic demonstration.

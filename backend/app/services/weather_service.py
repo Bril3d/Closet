@@ -49,6 +49,7 @@ class WeatherService:
     """Fetches weather data and maps to clothing suggestions."""
 
     BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+    GEO_URL = "http://api.openweathermap.org/geo/1.0/direct"
 
     def __init__(self, api_key: str):
         self.api_key = api_key
@@ -119,3 +120,43 @@ class WeatherService:
         except requests.exceptions.RequestException as e:
             logger.error(f"Weather API error: {e}")
             return None
+
+    def search_cities(self, query: str, limit: int = 5) -> List[Dict]:
+        """Search for cities matching a query using the Geocoding API."""
+        if not query or len(query) < 2:
+            return []
+            
+        try:
+            params = {
+                "q": query,
+                "limit": limit,
+                "appid": self.api_key,
+            }
+            response = requests.get(self.GEO_URL, params=params, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+            
+            cities = []
+            for item in data:
+                city_info = {
+                    "name": item.get("name", ""),
+                    "country": item.get("country", ""),
+                    "state": item.get("state", ""),
+                    "lat": item.get("lat"),
+                    "lon": item.get("lon"),
+                }
+                # Create a display name like "Paris, FR" or "Los Angeles, California, US"
+                parts = [city_info["name"]]
+                if city_info["state"]:
+                    parts.append(city_info["state"])
+                if city_info["country"]:
+                    parts.append(city_info["country"])
+                    
+                city_info["display_name"] = ", ".join(parts)
+                cities.append(city_info)
+                
+            return cities
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Geocoding API error: {e}")
+            return []

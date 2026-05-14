@@ -53,6 +53,25 @@ def get_weather_suggestion(
     }
 
 
+@router.get("/cities")
+def get_city_suggestions(
+    query: str = Query(..., min_length=2, description="City name query"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Get city autocomplete suggestions.
+    """
+    api_key = getattr(settings, 'OPENWEATHER_API_KEY', None)
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Weather API key not configured")
+
+    weather_service = WeatherService(api_key)
+    cities = weather_service.search_cities(query)
+    
+    return cities
+
+
 @router.get("/outfit")
 def get_outfit_suggestion(
     request: Request,
