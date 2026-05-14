@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator, TextInput, StyleSheet, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator, TextInput, StyleSheet, ViewStyle, TextStyle, ImageStyle, Dimensions } from 'react-native';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const IMAGE_SIZE = SCREEN_WIDTH - 48;
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -27,24 +30,17 @@ export default function UploadScreen() {
   const runAIConsultation = async (uri: string) => {
     setIsScanning(true);
     try {
-      const formData = new FormData();
-      const filename = uri.split('/').pop() || 'photo.jpg';
-      formData.append('file', { uri, name: filename, type: 'image/jpeg' } as any);
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 min timeout
-
-      const response = await fetch(`${api.defaults.baseURL}/items/classify`, {
-        method: 'POST',
+      const classifyUrl = `${api.defaults.baseURL}/items/classify`;
+      const result = await FileSystem.uploadAsync(classifyUrl, uri, {
+        fieldName: 'file',
+        httpMethod: 'POST',
+        uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+        sessionType: FileSystem.FileSystemSessionType.BACKGROUND,
         headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-        signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        const data = await response.json();
+      if (result.status === 200) {
+        const data = JSON.parse(result.body);
         setAiResults(data);
         if (data.category) {
           const match = CATEGORIES.find(cat => cat === data.category);
@@ -124,7 +120,7 @@ export default function UploadScreen() {
         <View style={s.imageSection}>
           {image ? (
             <View style={s.selectedImageContainer}>
-              <Image source={{ uri: image }} style={s.selectedImage} />
+              <Image source={{ uri: image }} style={s.selectedImage} resizeMode="cover" />
               <TouchableOpacity style={s.removeImageButton} onPress={() => { setImage(null); setAiResults(null); setSuggestedTags([]); }}>
                 <X size={20} color="#FFF" />
               </TouchableOpacity>
@@ -241,8 +237,8 @@ const s = StyleSheet.create({
   scrollView: { flex: 1 } as ViewStyle,
   scrollContent: { paddingBottom: 40 } as ViewStyle,
   imageSection: { paddingHorizontal: 24, paddingVertical: 24, alignItems: 'center' } as ViewStyle,
-  selectedImageContainer: { width: '100%', position: 'relative', borderRadius: 24, overflow: 'hidden', backgroundColor: '#FFF', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 } as ViewStyle,
-  selectedImage: { width: '100%', aspectRatio: 1 } as ImageStyle,
+  selectedImageContainer: { width: IMAGE_SIZE, height: IMAGE_SIZE, position: 'relative', borderRadius: 24, overflow: 'hidden', backgroundColor: '#FFF', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 } as ViewStyle,
+  selectedImage: { width: IMAGE_SIZE, height: IMAGE_SIZE } as ImageStyle,
   removeImageButton: { position: 'absolute', top: 16, right: 16, backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, borderRadius: 100 } as ViewStyle,
   uploadPlaceholder: { width: '100%', aspectRatio: 1, backgroundColor: '#F5F3FF', borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderStyle: 'dashed', borderColor: '#7C3AED', opacity: 0.8 } as ViewStyle,
   uploadButtonsRow: { flexDirection: 'row', gap: 24 } as ViewStyle,

@@ -15,27 +15,25 @@ logger = logging.getLogger(__name__)
 # Lazy-loaded singleton — model loads once on first request
 # ============================================================
 _model = None
-_processor = None
-_model_name = "Marqo/marqo-fashionSigLIP"
+_preprocess = None
+_tokenizer = None
+_model_name = "hf-hub:Marqo/marqo-fashionSigLIP"
 
 
 def _load_model():
-    """Load FashionSigLIP model (lazy singleton)."""
-    global _model, _processor
+    """Load FashionSigLIP model via open_clip (lazy singleton)."""
+    global _model, _preprocess, _tokenizer
     if _model is not None:
         return
 
     import torch
-    from transformers import AutoModel, AutoProcessor
+    import open_clip
 
     logger.info(f"Loading AI model: {_model_name} ...")
-    _processor = AutoProcessor.from_pretrained(_model_name, trust_remote_code=True)
-    _model = AutoModel.from_pretrained(
-        _model_name,
-        trust_remote_code=True,
-        device_map=None,           # Don't use accelerate/meta tensors
-        torch_dtype=torch.float32, # Force full precision on CPU
-    ).to("cpu")
+    _model, _, _preprocess = open_clip.create_model_and_transforms(
+        _model_name, device="cpu"
+    )
+    _tokenizer = open_clip.get_tokenizer(_model_name)
     _model.eval()
     logger.info("AI model loaded successfully!")
 
@@ -177,20 +175,17 @@ class AIService:
 
         self._ensure_model_loaded()
 
-        processed = _processor(
-            text=labels,
-            images=[image],
-            padding="max_length",
-            return_tensors="pt",
-        )
+        # Preprocess image for open_clip
+        image_tensor = _preprocess(image).unsqueeze(0)  # [1, 3, H, W]
+        text_tokens = _tokenizer(labels)  # [N, seq_len]
 
         with torch.no_grad():
-            image_features = _model.get_image_features(
-                processed["pixel_values"], normalize=True
-            )
-            text_features = _model.get_text_features(
-                processed["input_ids"], normalize=True
-            )
+            image_features = _model.encode_image(image_tensor)
+            text_features = _model.encode_text(text_tokens)
+
+            # Normalize
+            image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+            text_features = text_features / text_features.norm(dim=-1, keepdim=True)
 
         similarities = (100.0 * image_features @ text_features.T).softmax(dim=-1)
         probs = similarities[0].cpu().numpy()

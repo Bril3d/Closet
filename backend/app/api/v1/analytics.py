@@ -3,7 +3,7 @@ Analytics API — Wardrobe BI insights endpoints.
 """
 
 from typing import Any, List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func, distinct, extract
 from datetime import datetime, timedelta
@@ -146,6 +146,7 @@ def get_timeline(
 
 @router.get("/outfit-stats")
 def get_outfit_stats(
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
@@ -165,6 +166,7 @@ def get_outfit_stats(
         Item.owner_id == current_user.id
     ).group_by(Item.id).order_by(func.count(outfit_items.c.outfit_id).desc()).all()
 
+    base_url = str(request.base_url).rstrip("/")
     most_used = []
     least_used = []
 
@@ -173,7 +175,7 @@ def get_outfit_stats(
             "id": str(r[0]),
             "category": r[1],
             "color": r[2],
-            "image_url": storage.get_presigned_url(r[3]),
+            "image_url": f"{base_url}/api/v1/images/{r[3]}",
             "usage_count": r[4],
         })
 
@@ -182,7 +184,7 @@ def get_outfit_stats(
             "id": str(r[0]),
             "category": r[1],
             "color": r[2],
-            "image_url": storage.get_presigned_url(r[3]),
+            "image_url": f"{base_url}/api/v1/images/{r[3]}",
             "usage_count": r[4],
         })
 
@@ -194,6 +196,7 @@ def get_outfit_stats(
 
 @router.get("/sleeping-items")
 def get_sleeping_items(
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
@@ -208,12 +211,13 @@ def get_sleeping_items(
         ~Item.id.in_(db.query(used_item_ids))
     ).limit(20).all()
 
+    base_url = str(request.base_url).rstrip("/")
     return [
         {
             "id": str(item.id),
             "category": item.category,
             "color": item.color,
-            "image_url": storage.get_presigned_url(item.image_key),
+            "image_url": f"{base_url}/api/v1/images/{item.image_key}",
             "days_since_added": (datetime.utcnow() - item.created_at.replace(tzinfo=None)).days if item.created_at else 0,
         }
         for item in sleeping

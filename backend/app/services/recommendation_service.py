@@ -49,6 +49,7 @@ class RecommendationService:
         self,
         db: Session,
         user_id: str,
+        base_url: str,
         weather_categories: Optional[List[str]] = None,
         max_items: int = 4,
     ) -> Dict:
@@ -84,7 +85,7 @@ class RecommendationService:
             # Fallback: just return random items
             selected = random.sample(items, min(max_items, len(items)))
             return {
-                "items": [self._item_to_dict(i) for i in selected],
+                "items": [self._item_to_dict(i, base_url) for i in selected],
                 "reason": "Here are some items from your closet!",
             }
 
@@ -132,7 +133,7 @@ class RecommendationService:
         reason = f"A {color_str} outfit with great color harmony!"
 
         return {
-            "items": [self._item_to_dict(i) for i in outfit_items_list],
+            "items": [self._item_to_dict(i, base_url) for i in outfit_items_list],
             "reason": reason,
             "color_palette": list(set(used_colors)),
         }
@@ -167,15 +168,14 @@ class RecommendationService:
         top = scored[:min(3, len(scored))]
         return random.choice(top)[0]
 
-    def _item_to_dict(self, item: Item) -> Dict:
+    def _item_to_dict(self, item: Item, base_url: str) -> Dict:
         """Convert item to serializable dict."""
-        from app.services.storage import storage
 
         return {
             "id": str(item.id),
             "category": item.category,
             "color": item.color,
-            "image_url": storage.get_presigned_url(item.image_key),
+            "image_url": f"{base_url}/api/v1/images/{item.image_key}",
             "description": item.description,
             "is_favorite": item.is_favorite,
         }

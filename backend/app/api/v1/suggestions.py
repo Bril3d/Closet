@@ -3,7 +3,7 @@ Suggestions API — Weather-based and AI outfit suggestions.
 """
 
 from typing import Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from app.api.v1 import deps
@@ -18,6 +18,7 @@ router = APIRouter()
 
 @router.get("/weather")
 def get_weather_suggestion(
+    request: Request,
     city: str = Query(..., description="City name for weather lookup"),
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
@@ -38,9 +39,11 @@ def get_weather_suggestion(
 
     # Get recommended outfit based on weather categories
     weather_categories = weather.get("recommended_categories", [])
+    base_url = str(request.base_url).rstrip("/")
     outfit = recommendation_service.recommend_outfit(
         db=db,
         user_id=str(current_user.id),
+        base_url=base_url,
         weather_categories=weather_categories,
     )
 
@@ -52,6 +55,7 @@ def get_weather_suggestion(
 
 @router.get("/outfit")
 def get_outfit_suggestion(
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
@@ -59,9 +63,11 @@ def get_outfit_suggestion(
     Get an AI-generated outfit recommendation based on wardrobe.
     Uses color harmony, category balance, and diversity boosting.
     """
+    base_url = str(request.base_url).rstrip("/")
     outfit = recommendation_service.recommend_outfit(
         db=db,
         user_id=str(current_user.id),
+        base_url=base_url,
     )
 
     return outfit

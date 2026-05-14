@@ -1,5 +1,5 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Request
 from sqlalchemy.orm import Session
 import uuid
 
@@ -26,12 +26,14 @@ def get_or_create_tags(db: Session, tag_names: List[str]) -> List[Tag]:
         tags.append(tag)
     return tags
 
-def _item_to_out(item: Item) -> ItemOut:
-    """Helper to convert Item model to ItemOut schema with presigned URL."""
+def _item_to_out(item: Item, request: Request) -> ItemOut:
+    """Helper to convert Item model to ItemOut schema with proxied image URL."""
+    base_url = str(request.base_url).rstrip("/")
+    image_url = f"{base_url}/api/v1/images/{item.image_key}"
     return ItemOut(
         id=item.id,
         owner_id=item.owner_id,
-        image_url=storage.get_presigned_url(item.image_key),
+        image_url=image_url,
         category=item.category,
         color=item.color,
         description=item.description,
@@ -45,6 +47,7 @@ def _item_to_out(item: Item) -> ItemOut:
 @router.post("/", response_model=ItemOut)
 def create_item(
     *,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
     file: UploadFile = File(...),
@@ -121,10 +124,11 @@ def create_item(
     db.commit()
     db.refresh(item)
     
-    return _item_to_out(item)
+    return _item_to_out(item, request)
 
 @router.get("/", response_model=List[ItemOut])
 def read_items(
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
     skip: int = 0,
@@ -146,11 +150,12 @@ def read_items(
         query = query.filter(Item.is_favorite == is_favorite)
         
     items = query.offset(skip).limit(limit).all()
-    return [_item_to_out(item) for item in items]
+    return [_item_to_out(item, request) for item in items]
 
 @router.get("/{item_id}", response_model=ItemOut)
 def read_item(
     *,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
     item_id: uuid.UUID,
@@ -162,7 +167,7 @@ def read_item(
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     
-    return _item_to_out(item)
+    return _item_to_out(item, request)
 
 @router.delete("/{item_id}")
 def delete_item(
@@ -208,6 +213,7 @@ def classify_item(
 @router.patch("/{item_id}", response_model=ItemOut)
 def update_item(
     *,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
     item_id: uuid.UUID,
@@ -229,4 +235,4 @@ def update_item(
     db.commit()
     db.refresh(item)
     
-    return _item_to_out(item)
+    return _item_to_out(item, request)
