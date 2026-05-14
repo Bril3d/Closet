@@ -1,9 +1,5 @@
 # 👗 Closet — Smart Fashion BI/AI Application
 
-<div align="center">
-  <img src="./demo/7.gif" width="300" alt="Closet AI Stylist Demo" style="border-radius: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" />
-  <p><em>Digitize your wardrobe. Get AI-powered outfit recommendations. Reduce fashion waste.</em></p>
-</div>
 
 Closet is a state-of-the-art, full-stack mobile application that transforms your smartphone into a personal digital stylist. By merging zero-shot AI garment classification, real-time geocoding, and advanced business intelligence, Closet empowers users to make sustainable, stylish, and data-driven fashion choices every day.
 
