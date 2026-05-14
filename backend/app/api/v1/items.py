@@ -1,5 +1,5 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Request
 from sqlalchemy.orm import Session
 import uuid
 
@@ -7,7 +7,7 @@ from app.api.v1 import deps
 from app.core.database import get_db
 from app.models.item import Item, Tag
 from app.models.user import User
-from app.schemas.item import ItemOut, TagOut, ItemUpdate
+from app.schemas.item import ItemOut, TagOut, ItemUpdate, ClassificationResult
 from app.services.storage import storage
 from app.services.ai_service import ai_service
 
@@ -26,9 +26,28 @@ def get_or_create_tags(db: Session, tag_names: List[str]) -> List[Tag]:
         tags.append(tag)
     return tags
 
+def _item_to_out(item: Item, request: Request) -> ItemOut:
+    """Helper to convert Item model to ItemOut schema with proxied image URL."""
+    base_url = str(request.base_url).rstrip("/")
+    image_url = f"{base_url}/api/v1/images/{item.image_key}"
+    return ItemOut(
+        id=item.id,
+        owner_id=item.owner_id,
+        image_url=image_url,
+        category=item.category,
+        color=item.color,
+        description=item.description,
+        is_favorite=item.is_favorite,
+        created_at=item.created_at,
+        tags=[TagOut(id=t.id, name=t.name) for t in item.tags],
+        price=item.price if hasattr(item, 'price') else None,
+        times_worn=item.times_worn if hasattr(item, 'times_worn') else 0,
+    )
+
 @router.post("/", response_model=ItemOut)
 def create_item(
     *,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
     file: UploadFile = File(...),
@@ -36,10 +55,11 @@ def create_item(
     color: str = Form(None),
     description: str = Form(None),
     is_favorite: bool = Form(False),
+    price: float = Form(None),
     tags_json: str = Form("[]"), # Expecting JSON string of tags
 ) -> Any:
     """
-    Create new item with image upload and tagging.
+    Create new item with image upload, AI classification, and background removal.
     """
     import json
     try:
@@ -47,34 +67,44 @@ def create_item(
     except:
         tag_list = []
 
-    # 1. Upload to MinIO
+    # 1. Read file data
     file_extension = file.filename.split(".")[-1] if "." in file.filename else "bin"
     file_key = f"users/{current_user.id}/{uuid.uuid4()}.{file_extension}"
     
     try:
         file_data = file.file.read()
         
-        # New: Remove background
+        # 2. Remove background
         file_data = ai_service.remove_background(file_data)
         
+        # 3. Upload to MinIO
         storage.upload_file(
             file_data=file_data,
             file_key=file_key,
-            content_type="image/png" # Background removal always results in PNG (RGBA)
+            content_type="image/png"
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
 
-    # 2. Save Item and Tags
-    db_tags = get_or_create_tags(db, tag_list)
-    
-    # 3. AI Detection if metadata is missing
+    # 4. AI Classification if metadata is missing
     final_category = category
     final_color = color
     if not final_category or not final_color:
         ai_results = ai_service.classify_image(file_data)
-        if not final_category: final_category = ai_results["top_predictions"][0]
-        if not final_color: final_color = ai_results["dominant_color"]
+        if not final_category:
+            final_category = ai_results.get("category", "Tops")
+        if not final_color:
+            final_color = ai_results.get("dominant_color", "Unknown")
+        
+        # Auto-add AI-suggested tags if user didn't provide any
+        if not tag_list:
+            suggested = ai_results.get("attributes", {})
+            for key, value in suggested.items():
+                if value and value != "Unknown":
+                    tag_list.append(value.lower())
+
+    # 5. Save Item and Tags
+    db_tags = get_or_create_tags(db, tag_list)
 
     item = Item(
         owner_id=current_user.id,
@@ -85,24 +115,20 @@ def create_item(
         is_favorite=is_favorite,
         tags=db_tags
     )
+    
+    # Set price if provided and column exists
+    if price is not None and hasattr(item, 'price'):
+        item.price = price
+    
     db.add(item)
     db.commit()
     db.refresh(item)
     
-    return ItemOut(
-        id=item.id,
-        owner_id=item.owner_id,
-        image_url=storage.get_presigned_url(item.image_key),
-        category=item.category,
-        color=item.color,
-        description=item.description,
-        is_favorite=item.is_favorite,
-        created_at=item.created_at,
-        tags=[TagOut(id=t.id, name=t.name) for t in item.tags]
-    )
+    return _item_to_out(item, request)
 
 @router.get("/", response_model=List[ItemOut])
 def read_items(
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
     skip: int = 0,
@@ -124,26 +150,12 @@ def read_items(
         query = query.filter(Item.is_favorite == is_favorite)
         
     items = query.offset(skip).limit(limit).all()
-    
-    results = []
-    for item in items:
-        results.append(ItemOut(
-            id=item.id,
-            owner_id=item.owner_id,
-            image_url=storage.get_presigned_url(item.image_key),
-            category=item.category,
-            color=item.color,
-            description=item.description,
-            is_favorite=item.is_favorite,
-            created_at=item.created_at,
-            tags=[TagOut(id=t.id, name=t.name) for t in item.tags]
-        ))
-    
-    return results
+    return [_item_to_out(item, request) for item in items]
 
 @router.get("/{item_id}", response_model=ItemOut)
 def read_item(
     *,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
     item_id: uuid.UUID,
@@ -155,17 +167,7 @@ def read_item(
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     
-    return ItemOut(
-        id=item.id,
-        owner_id=item.owner_id,
-        image_url=storage.get_presigned_url(item.image_key),
-        category=item.category,
-        color=item.color,
-        description=item.description,
-        is_favorite=item.is_favorite,
-        created_at=item.created_at,
-        tags=[TagOut(id=t.id, name=t.name) for t in item.tags]
-    )
+    return _item_to_out(item, request)
 
 @router.delete("/{item_id}")
 def delete_item(
@@ -189,23 +191,29 @@ def delete_item(
     db.commit()
     return {"message": "Item deleted"}
 
-@router.post("/classify")
+@router.post("/classify", response_model=ClassificationResult)
 def classify_item(
     *,
     file: UploadFile = File(...),
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
-    Classify an item image using AI.
+    Classify an item image using AI (FashionSigLIP).
+    Returns category, subcategory, color, confidence, attributes, and suggested tags.
     """
     file.file.seek(0)
     file_data = file.file.read()
+    
     results = ai_service.classify_image(file_data)
+    suggested_tags = ai_service.suggest_tags(file_data)
+    results["suggested_tags"] = suggested_tags
+    
     return results
 
 @router.patch("/{item_id}", response_model=ItemOut)
 def update_item(
     *,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
     item_id: uuid.UUID,
@@ -220,21 +228,11 @@ def update_item(
     
     update_data = item_in.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        setattr(item, field, value)
+        if hasattr(item, field):
+            setattr(item, field, value)
     
     db.add(item)
     db.commit()
     db.refresh(item)
     
-    return ItemOut(
-        id=item.id,
-        owner_id=item.owner_id,
-        image_url=storage.get_presigned_url(item.image_key),
-        category=item.category,
-        color=item.color,
-        description=item.description,
-        is_favorite=item.is_favorite,
-        created_at=item.created_at,
-        tags=[TagOut(id=t.id, name=t.name) for t in item.tags]
-    )
-
+    return _item_to_out(item, request)

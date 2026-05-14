@@ -370,7 +370,7 @@ class Trainer:
         ])
         
         train_dataset = GarmentDataset('train', train_transform, max_samples=None)
-        val_dataset = GarmentDataset('validation', val_transform, 1max_samples=None)
+        val_dataset = GarmentDataset('validation', val_transform, max_samples=None)
         
         if len(train_dataset) == 0 or len(val_dataset) == 0:
             print("❌ ERROR: No valid images found!")

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, TouchableOpacity, SafeAreaView, Dimensions, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, TouchableOpacity, Dimensions, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Share2, Edit, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, Share2, Edit, ChevronRight, Trash2 } from 'lucide-react-native';
+import { Alert } from 'react-native';
 import api from '../../services/api';
 import { useAuthStore } from '../../store/useAuthStore';
 
@@ -114,11 +116,21 @@ export default function OutfitDetailScreen() {
           <ArrowLeft size={24} color="#111827" />
         </TouchableOpacity>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Share2 size={22} color="#111827" />
-          </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} onPress={() => router.push(`/outfits/edit/${id}`)}>
             <Edit size={22} color="#111827" />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.iconButton, { backgroundColor: '#FEF2F2' }]} onPress={() => {
+            Alert.alert('Delete Outfit', 'Are you sure you want to delete this outfit?', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Delete', style: 'destructive', onPress: async () => {
+                try {
+                  await api.delete(`/outfits/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+                  router.back();
+                } catch (e) { Alert.alert('Error', 'Failed to delete outfit'); }
+              }},
+            ]);
+          }}>
+            <Trash2 size={22} color="#EF4444" />
           </TouchableOpacity>
         </View>
       </View>
