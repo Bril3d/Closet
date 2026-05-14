@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, RefreshControl, ActivityIndicator, SafeAreaView, Dimensions, StyleSheet, ViewStyle, TextStyle, ImageStyle, TextInput, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, FlatList, Image, TouchableOpacity, RefreshControl, ActivityIndicator, Dimensions, StyleSheet, ViewStyle, TextStyle, ImageStyle, TextInput, ScrollView } from 'react-native';
 import { Plus, Search, Shirt, LogOut, X, Heart } from 'lucide-react-native';
 import api from '../../services/api';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -105,7 +106,7 @@ export default function ClosetScreen() {
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={[styles.itemCard, { width: ITEM_WIDTH }]}
-      onPress={() => {/* Navigate to item detail */ }}
+      onPress={() => router.push(`/items/${item.id}`)}
     >
       <Image
         source={{ uri: item.image_url }}

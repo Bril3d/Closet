@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean, Table
+from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean, Table, Float, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -28,6 +28,8 @@ class Item(Base):
     color = Column(String)
     description = Column(String)
     is_favorite = Column(Boolean, default=False)
+    price = Column(Float, nullable=True)
+    times_worn = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships

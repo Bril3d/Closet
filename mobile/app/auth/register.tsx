@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, SafeAreaView, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import { KeyRound, Mail } from 'lucide-react-native';
 import api from '../../services/api';

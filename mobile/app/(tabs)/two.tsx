@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, FlatList, Image, StyleSheet, ViewStyle, TextStyle, ImageStyle, ActivityIndicator, RefreshControl } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, FlatList, Image, StyleSheet, ViewStyle, TextStyle, ImageStyle, ActivityIndicator, RefreshControl } from 'react-native';
 import { Plus, Sparkles, ChevronRight } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
