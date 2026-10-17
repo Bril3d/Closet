@@ -6,11 +6,12 @@ import { useColorScheme } from '@/components/useColorScheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const activeScheme = colorScheme === 'dark' ? 'dark' : 'light';
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: Colors[activeScheme].tint,
         headerShown: false,
         tabBarStyle: {
           borderTopWidth: 0,
