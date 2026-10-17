@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 12,
-    background: '#FFF',
+    backgroundColor: '#FFF',
   } as ViewStyle,
   headerRight: {
     flexDirection: 'row',

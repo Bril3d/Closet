@@ -10,15 +10,23 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
   const handleRegister = async () => {
-    if (!email || !password || !confirmPassword) {
+    setErrorMessage('');
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+    const cleanConfirm = confirmPassword.trim();
+
+    if (!cleanEmail || !cleanPassword || !cleanConfirm) {
+      setErrorMessage('Please fill in all fields');
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (cleanPassword !== cleanConfirm) {
+      setErrorMessage('Passwords do not match');
       Alert.alert('Error', 'Passwords do not match');
       return;
     }
@@ -26,8 +34,8 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       await api.post('/auth/register', {
-        email,
-        password,
+        email: cleanEmail,
+        password: cleanPassword,
       });
 
       Alert.alert('Success', 'Account created! Please sign in.', [
@@ -35,7 +43,9 @@ export default function RegisterScreen() {
       ]);
     } catch (error: any) {
       console.error(error);
-      Alert.alert('Registration Failed', error.response?.data?.detail || 'Something went wrong');
+      const detail = error.response?.data?.detail || 'Something went wrong';
+      setErrorMessage(detail);
+      Alert.alert('Registration Failed', detail);
     } finally {
       setLoading(false);
     }
@@ -87,6 +97,12 @@ export default function RegisterScreen() {
             />
           </View>
         </View>
+
+        {errorMessage ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        ) : null}
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -184,6 +200,20 @@ const styles = StyleSheet.create({
     color: '#7C3AED',
     fontSize: 16,
     fontWeight: '600',
+  } as TextStyle,
+  errorBanner: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#F87171',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 16,
+    alignItems: 'center',
+  } as ViewStyle,
+  errorText: {
+    color: '#B91C1C',
+    fontSize: 14,
+    fontWeight: '500',
   } as TextStyle,
 });
 

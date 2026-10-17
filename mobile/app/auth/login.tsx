@@ -10,18 +10,24 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const handleLogin = async () => {
-    if (!email || !password) {
+    setErrorMessage('');
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    if (!cleanEmail || !cleanPassword) {
+      setErrorMessage('Please fill in all fields');
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     setLoading(true);
     try {
-      const payload = `username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
+      const payload = `username=${encodeURIComponent(cleanEmail)}&password=${encodeURIComponent(cleanPassword)}`;
 
       const response = await api.post('/auth/login', payload, {
         headers: {
@@ -42,7 +48,9 @@ export default function LoginScreen() {
       router.replace('/(tabs)');
     } catch (error: any) {
       console.error(error);
-      Alert.alert('Login Failed', error.response?.data?.detail || 'Something went wrong');
+      const detail = error.response?.data?.detail || 'Invalid email or password';
+      setErrorMessage(detail);
+      Alert.alert('Login Failed', detail);
     } finally {
       setLoading(false);
     }
@@ -82,6 +90,12 @@ export default function LoginScreen() {
             />
           </View>
         </View>
+
+        {errorMessage ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        ) : null}
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -179,6 +193,20 @@ const styles = StyleSheet.create({
     color: '#7C3AED',
     fontSize: 16,
     fontWeight: '600',
+  } as TextStyle,
+  errorBanner: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#F87171',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 16,
+    alignItems: 'center',
+  } as ViewStyle,
+  errorText: {
+    color: '#B91C1C',
+    fontSize: 14,
+    fontWeight: '500',
   } as TextStyle,
 });
 

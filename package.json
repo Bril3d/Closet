@@ -1,0 +1,13 @@
+{
+  "name": "closet-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Smart Fashion BI/AI Application",
+  "scripts": {
+    "start": "npm --prefix mobile start",
+    "mobile": "npm --prefix mobile start",
+    "android": "npm --prefix mobile run android",
+    "ios": "npm --prefix mobile run ios",
+    "web": "npm --prefix mobile run web"
+  }
+}
