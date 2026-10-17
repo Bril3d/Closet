@@ -4,8 +4,7 @@ import { View, Text, FlatList, Image, TouchableOpacity, RefreshControl, Activity
 import { Plus, Search, Shirt, LogOut, X, Heart } from 'lucide-react-native';
 import api from '../../services/api';
 import { useAuthStore } from '../../store/useAuthStore';
-import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 
 const { width } = Dimensions.get('window');

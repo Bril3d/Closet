@@ -21,7 +21,7 @@ export default function StylistScreen() {
   const [weatherData, setWeatherData] = useState<any>(null);
   const [weatherOutfit, setWeatherOutfit] = useState<any>(null);
   const [weatherError, setWeatherError] = useState('');
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const token = useAuthStore((state) => state.token);
   const router = useRouter();

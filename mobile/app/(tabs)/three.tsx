@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl,
-  Dimensions, Image, TouchableOpacity, ViewStyle, TextStyle
+  Dimensions, Image, TouchableOpacity, ViewStyle, TextStyle, ImageStyle
 } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { BarChart3, TrendingUp, Shirt, Heart, Palette, Sparkles, Moon } from 'lucide-react-native';
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 8,
     borderWidth: 1, borderColor: '#F3F4F6',
   } as ViewStyle,
-  sleepingImage: { width: 90, height: 90, borderRadius: 10, backgroundColor: '#F3F4F6' } as ViewStyle,
+  sleepingImage: { width: 90, height: 90, borderRadius: 10, backgroundColor: '#F3F4F6' } as ImageStyle,
   sleepingCategory: { fontSize: 12, fontWeight: '600', color: '#111827', marginTop: 6 } as TextStyle,
   sleepingDays: { fontSize: 11, color: '#EF4444', fontWeight: '500' } as TextStyle,
 

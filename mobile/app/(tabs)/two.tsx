@@ -2,8 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, FlatList, Image, StyleSheet, ViewStyle, TextStyle, ImageStyle, ActivityIndicator, RefreshControl } from 'react-native';
 import { Plus, Sparkles, ChevronRight } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import api from '../../services/api';
 import { useAuthStore } from '../../store/useAuthStore';
 

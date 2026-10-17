@@ -38,7 +38,11 @@
           "cameraPermission": "The app accesses your camera to let you take photos of your clothes."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font",
+      "expo-web-browser",
+      "expo-splash-screen",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true
